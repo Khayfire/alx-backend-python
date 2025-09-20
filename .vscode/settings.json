@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./python-generators-0x00",
+        "./0x03-Unittests_and_integration_tests/test_"
+    ]
+}
