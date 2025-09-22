@@ -2,44 +2,35 @@ from rest_framework import serializers
 from .models import User, Conversation, Message
 
 
-# -----------------------
-# User Serializer
-# -----------------------
 class UserSerializer(serializers.ModelSerializer):
+    # Example of explicit CharField
+    bio = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = User
-        fields = [
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-            "phone_number",
-            "role",
-            "created_at",
-        ]
-        read_only_fields = ["id", "created_at"]
+        fields = ["id", "username", "email", "bio"]
 
 
-# -----------------------
-# Message Serializer
-# -----------------------
 class MessageSerializer(serializers.ModelSerializer):
-    sender = UserSerializer(read_only=True)
+    sender_username = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ["id", "sender", "message_body", "sent_at", "conversation"]
-        read_only_fields = ["id", "sent_at", "conversation"]
+        fields = ["id", "sender", "sender_username", "content", "timestamp", "conversation"]
+
+    def get_sender_username(self, obj):
+        return obj.sender.username
 
 
-# -----------------------
-# Conversation Serializer
-# -----------------------
 class ConversationSerializer(serializers.ModelSerializer):
-    participants = UserSerializer(many=True, read_only=True)
     messages = MessageSerializer(many=True, read_only=True)
+    title = serializers.CharField(required=True)
 
     class Meta:
         model = Conversation
-        fields = ["id", "participants", "created_at", "messages"]
-        read_only_fields = ["id", "created_at"]
+        fields = ["id", "title", "participants", "messages"]
+
+    def validate_title(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError("Conversation title must be at least 3 characters long.")
+        return value
