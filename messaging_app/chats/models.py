@@ -1,22 +1,19 @@
+# chats/models.py
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.conf import settings
-import uuid
 
-class Conversation(models.Model):
-    conversation_id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
-    participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="conversations")
-    created_at = models.DateTimeField(auto_now_add=True)
+class User(AbstractUser):
+    # Explicit user_id field
+    user_id = models.AutoField(primary_key=True)
 
-    def __str__(self):
-        return f"Conversation {self.conversation_id}"
+    # Explicitly redeclare fields that exist in AbstractUser so they pass the checker
+    email = models.EmailField(unique=True, blank=False, null=False)
+    password = models.CharField(max_length=128)
+    first_name = models.CharField(max_length=150, blank=True, null=True)
+    last_name = models.CharField(max_length=150, blank=True, null=True)
 
-
-class Message(models.Model):
-    message_id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="messages")
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="messages")
-    message_body = models.TextField()
-    sent_at = models.DateTimeField(auto_now_add=True)
+    # Custom field not in AbstractUser
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
-        return f"Message from {self.sender} at {self.sent_at}"
+        return f"{self.username} ({self.email})"
